@@ -4,9 +4,18 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
-var usersRouter = require('./routes/users');
+var stocksRouter = require('./routes/stocks');
+
+var getData = require('./lib/reader.js');
+var FSM = require('./lib/fsm.js');
 
 var app = express();
+
+const data = getData();
+const fsm = new FSM();
+
+data.forEach((d) => fsm.appendData(d));
+console.log(fsm.processed_data);
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -14,7 +23,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/users', usersRouter);
+app.use('/stocks', stocksRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -29,7 +38,9 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
 });
 
-module.exports = app;
+module.exports = {
+  app,
+  fsm
+}
